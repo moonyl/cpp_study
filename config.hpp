@@ -37,3 +37,48 @@
 #else
   #define MY_RELEASE 1
 #endif
+
+
+// 안전한 검사 도우미
+#if !defined(HAS_INCLUDE)
+  #if defined(__has_include)
+    #define HAS_INCLUDE(header) __has_include(header)
+  #else
+    #define HAS_INCLUDE(header) 0
+  #endif
+#endif
+
+#if !defined(HAS_ATTR)
+  #if defined(__has_cpp_attribute)
+    #define HAS_ATTR(x) __has_cpp_attribute(x)
+  #else
+    #define HAS_ATTR(x) 0
+  #endif
+#endif
+
+// 속성 래퍼 (예: deprecated)
+#if HAS_ATTR(deprecated)
+  #define ATTR_DEPRECATED(msg) [[deprecated(msg)]]
+#else
+  #define ATTR_DEPRECATED(msg)
+#endif
+
+// 기능 테스트 매크로 기반 래퍼 (예: consteval 폴백)
+#ifdef __cpp_consteval
+  #define MY_CONSTEVAL consteval
+#else
+  #define MY_CONSTEVAL constexpr
+#endif
+
+// 표준 라이브러리 헤더 가용성 따라 분기(예: optional)
+#if HAS_INCLUDE(<version>)
+  #include <version>   // __cpp_lib_xxx 매크로를 쓰려면 가능하면 포함
+#endif
+
+#if HAS_INCLUDE(<optional>)
+  #include <optional>
+  template<class T> using optional_t = std::optional<T>;
+#else
+  #include "myoptional.h"
+  template<class T> using optional_t = my::optional<T>;
+#endif
